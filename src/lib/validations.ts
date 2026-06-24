@@ -78,6 +78,7 @@ export const createTaskSchema = z.object({
   parentTaskId: z.string().optional(),
   status: z.string().optional(),
   sectionId: z.string().optional(),
+  myTasksSectionId: z.string().nullable().optional(),
   priority: z.enum(["none", "low", "medium", "high", "urgent"]).default("none"),
   assignees: z.array(z.string()).default([]),
   startDate: z.string().datetime().optional(),
@@ -94,6 +95,7 @@ export const updateTaskSchema = z.object({
   description: z.string().max(10000).optional(),
   status: z.string().optional(),
   sectionId: z.string().nullable().optional(),
+  myTasksSectionId: z.string().nullable().optional(),
   priority: z.enum(["none", "low", "medium", "high", "urgent"]).optional(),
   assignees: z.array(z.string()).optional(),
   startDate: z.string().datetime().nullable().optional(),
@@ -117,6 +119,10 @@ export const updateTaskSchema = z.object({
     .optional(),
 })
 
+export const updateMyTasksSectionsSchema = z.object({
+  sections: z.array(projectSectionSchema),
+})
+
 export const createCommentSchema = z.object({
   content: z.string().min(1).max(5000),
   mentions: z.array(z.string()).default([]),
@@ -128,14 +134,25 @@ export const updateCommentSchema = z.object({
 
 export const inviteUserSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["admin", "member", "guest"]).default("member"),
+  role: z.enum(["admin", "member"]).default("member"),
+  teamId: z.string().optional(),
+})
+
+export const createTeamSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+  members: z.array(z.string()).default([]),
+})
+
+export const updateTeamSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  members: z.array(z.string()).optional(),
 })
 
 export const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   avatar: z.string().optional(),
-  role: z.enum(["superadmin", "admin", "member", "guest"]).optional(),
-  isActive: z.boolean().optional(),
+  role: z.enum(["admin", "member"]).optional(),
+  status: z.enum(["pending", "active", "blocked"]).optional(),
   preferences: z
     .object({
       theme: z.enum(["light", "dark"]).optional(),
@@ -168,7 +185,6 @@ export const registerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  organizationName: z.string().min(1, "Organization name is required").max(100),
 })
 
 export const loginSchema = z.object({

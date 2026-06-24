@@ -76,7 +76,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const previousStatus = task.status
     const previousAssignees = task.assignees.map((a) => a.toString())
 
-    Object.assign(task, data)
+    const { myTasksSectionId, ...taskUpdates } = data
+
+    Object.assign(task, taskUpdates)
+
+    if (myTasksSectionId !== undefined) {
+      if (myTasksSectionId === null) {
+        task.myTasksSections.delete(user.id)
+      } else {
+        task.myTasksSections.set(user.id, myTasksSectionId)
+      }
+      task.markModified("myTasksSections")
+    }
 
     // Mark completedAt when the task moves into the project's last column,
     // and clear it when moved out of that column.
@@ -100,7 +111,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const changes = diffFields(
       before as unknown as Record<string, unknown>,
-      data as Record<string, unknown>
+      taskUpdates as Record<string, unknown>
     )
 
     await logAudit({

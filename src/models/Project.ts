@@ -83,7 +83,7 @@ const ProjectColumnSchema = new Schema<IProjectColumn>(
   { _id: false }
 )
 
-const ProjectSectionSchema = new Schema<IProjectSection>(
+export const ProjectSectionSchema = new Schema<IProjectSection>(
   {
     id: { type: String, required: true },
     name: { type: String, required: true },

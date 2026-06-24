@@ -1,12 +1,19 @@
-import NextAuth from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
-import { Types } from "mongoose"
 import { connectDB } from "@/lib/db"
 import { User } from "@/models/User"
-import { Organization } from "@/models/Organization"
 import { authConfig } from "@/lib/auth.config"
+import { provisionNewUser } from "@/lib/onboarding"
+
+class PendingApprovalError extends CredentialsSignin {
+  code = "pending_approval"
+}
+
+class AccountBlockedError extends CredentialsSignin {
+  code = "blocked"
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -31,6 +38,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const isValid = await bcrypt.compare(credentials.password as string, user.password)
         if (!isValid) return null
 
+        if (user.status === "pending") throw new PendingApprovalError()
+        if (user.status === "blocked") throw new AccountBlockedError()
+
         return {
           id: user._id.toString(),
           name: user.name,
@@ -52,32 +62,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         let dbUser = await User.findOne({ email: user.email })
 
         if (!dbUser) {
-          // First time Google sign-in: create a personal organization and owner user
-          const placeholderOwnerId = new Types.ObjectId()
-          const org = await Organization.create({
-            name: `${user.name ?? "My"}'s Organization`,
-            slug: `org-${Date.now()}`,
-            ownerId: placeholderOwnerId,
-            members: [],
-            settings: {
-              allowPublicProjects: false,
-              defaultProjectVisibility: "private",
-              maxMembers: 10,
-            },
-          })
-
-          dbUser = await User.create({
+          // First-ever signup becomes Super Admin and is active immediately;
+          // everyone after that joins as a pending Member awaiting approval.
+          const { user: createdUser } = await provisionNewUser({
             name: user.name ?? user.email,
             email: user.email,
             avatar: user.image ?? undefined,
-            role: "admin",
-            organizationId: org._id,
           })
-
-          org.ownerId = dbUser._id
-          org.members.push({ userId: dbUser._id, role: "owner", joinedAt: new Date() })
-          await org.save()
+          dbUser = createdUser
         }
+
+        if (dbUser.status === "pending") return "/login?oauthError=pending_approval"
+        if (dbUser.status === "blocked") return "/login?oauthError=blocked"
 
         user.id = dbUser._id.toString()
         user.role = dbUser.role

@@ -49,6 +49,7 @@ export interface ITask extends Document {
   subtasks: ITaskSubtask[]
   dependencies: ITaskDependency[]
   customFields: Map<string, unknown>
+  myTasksSections: Map<string, string>
   tags: string[]
   attachments: ITaskAttachment[]
   watchers: Types.ObjectId[]
@@ -125,6 +126,7 @@ const TaskSchema = new Schema<ITask>(
     subtasks: { type: [TaskSubtaskSchema], default: [] },
     dependencies: { type: [TaskDependencySchema], default: [] },
     customFields: { type: Map, of: Schema.Types.Mixed, default: {} },
+    myTasksSections: { type: Map, of: String, default: {} },
     tags: [{ type: String }],
     attachments: { type: [TaskAttachmentSchema], default: [] },
     watchers: [{ type: Schema.Types.ObjectId, ref: "User" }],

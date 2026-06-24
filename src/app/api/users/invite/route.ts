@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 import { connectDB } from "@/lib/db"
 import { User } from "@/models/User"
 import { Organization } from "@/models/Organization"
+import { Team } from "@/models/Team"
 import {
   getSessionUser,
   unauthorized,
@@ -21,12 +22,16 @@ export async function POST(req: NextRequest) {
     const user = await getSessionUser()
     if (!user) return unauthorized()
 
-    const isOrgAdmin = user.role === "admin" || user.role === "superadmin"
+    const isSuperAdmin = user.role === "superadmin"
+    const isOrgAdmin = user.role === "admin" || isSuperAdmin
     if (!isOrgAdmin) return forbidden()
 
     const body = await req.json()
     const parsed = inviteUserSchema.safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten())
+
+    // Only the super admin can grant Admin access; regular admins can only invite Members.
+    if (parsed.data.role === "admin" && !isSuperAdmin) return forbidden()
 
     await connectDB()
 
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
         password: hashed,
         role: parsed.data.role,
         organizationId: org._id,
-        isActive: false,
+        status: "pending",
       })
     }
 
@@ -53,10 +58,17 @@ export async function POST(req: NextRequest) {
     if (!alreadyMember) {
       org.members.push({
         userId: invitedUser._id,
-        role: parsed.data.role === "admin" ? "admin" : parsed.data.role,
+        role: parsed.data.role,
         joinedAt: new Date(),
       })
       await org.save()
+    }
+
+    if (parsed.data.teamId) {
+      await Team.updateOne(
+        { _id: parsed.data.teamId, organizationId: user.organizationId },
+        { $addToSet: { members: invitedUser._id } }
+      )
     }
 
     const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000"

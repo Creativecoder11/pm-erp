@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose"
+import { ProjectSectionSchema, type IProjectSection } from "./Project"
 
 export interface IUser extends Document {
   _id: Types.ObjectId
@@ -6,11 +7,12 @@ export interface IUser extends Document {
   email: string
   password?: string
   avatar?: string
-  role: "superadmin" | "admin" | "member" | "guest"
+  role: "superadmin" | "admin" | "member"
   organizationId: Types.ObjectId
   teams: Types.ObjectId[]
-  isActive: boolean
+  status: "pending" | "active" | "blocked"
   lastSeen: Date
+  myTasksSections: IProjectSection[]
   preferences: {
     theme: "light" | "dark"
     notifications: {
@@ -33,13 +35,18 @@ const UserSchema = new Schema<IUser>(
     avatar: { type: String },
     role: {
       type: String,
-      enum: ["superadmin", "admin", "member", "guest"],
+      enum: ["superadmin", "admin", "member"],
       default: "member",
     },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     teams: [{ type: Schema.Types.ObjectId }],
-    isActive: { type: Boolean, default: true },
+    status: {
+      type: String,
+      enum: ["pending", "active", "blocked"],
+      default: "active",
+    },
     lastSeen: { type: Date, default: Date.now },
+    myTasksSections: { type: [ProjectSectionSchema], default: [] },
     preferences: {
       theme: { type: String, enum: ["light", "dark"], default: "light" },
       notifications: {
@@ -58,3 +65,10 @@ UserSchema.index({ organizationId: 1 })
 
 export const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
+
+export const DEFAULT_MY_TASKS_SECTIONS: IProjectSection[] = [
+  { id: "recently_assigned", name: "Recently assigned", order: 0 },
+  { id: "do_today", name: "Do today", order: 1 },
+  { id: "do_next_week", name: "Do next week", order: 2 },
+  { id: "do_later", name: "Do later", order: 3 },
+]

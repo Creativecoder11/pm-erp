@@ -18,7 +18,7 @@ interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   return transporter.sendMail({
-    from: `"Jamroll PM" <${process.env.SMTP_USER}>`,
+    from: `"LLS Task Management" <${process.env.SMTP_USER}>`,
     to,
     subject,
     html,
@@ -58,7 +58,7 @@ export function taskDueTomorrowEmail(taskTitle: string, projectName: string, lin
 
 export function projectInviteEmail(orgName: string, inviteLink: string) {
   return {
-    subject: `You've been invited to join ${orgName} on Jamroll PM`,
+    subject: `You've been invited to join ${orgName} on LLS Task Management`,
     html: `
       <p>You've been invited to join <strong>${orgName}</strong>.</p>
       <p><a href="${inviteLink}">Accept invitation</a></p>

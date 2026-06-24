@@ -42,18 +42,22 @@ export const authConfig: NextAuthConfig = {
 
       return isLoggedIn
     },
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.role = user.role
         token.organizationId = user.organizationId
+      }
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name
+        if (session.image !== undefined) token.picture = session.image
       }
       return token
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as "superadmin" | "admin" | "member" | "guest"
+        session.user.role = token.role as "superadmin" | "admin" | "member"
         session.user.organizationId = token.organizationId as string
       }
       return session

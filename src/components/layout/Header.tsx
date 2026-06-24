@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { signOut, useSession } from "next-auth/react"
 import {
   Menu,
   Search,
@@ -10,15 +11,23 @@ import {
   Moon,
   Laptop,
   CheckCheck,
+  Settings,
+  LogOut,
+  User,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { UserAvatar } from "@/components/shared/Avatar"
 import { useUIStore } from "@/store/uiStore"
 import { useNotifications } from "@/hooks/useNotifications"
 import { cn, formatRelativeTime } from "@/lib/utils"
@@ -27,6 +36,7 @@ import { NOTIFICATION_ICONS } from "@/lib/notification-icons"
 export function Header() {
   const { setMobileNavOpen, setCommandPaletteOpen } = useUIStore()
   const { setTheme } = useTheme()
+  const { data: session } = useSession()
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
 
   return (
@@ -137,6 +147,62 @@ export function Header() {
             <DropdownMenuItem onClick={() => setTheme("system")}>
               <Laptop className="mr-2 h-4 w-4" />
               System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            openOnHover
+            closeDelay={150}
+            render={
+              <button type="button" className="ml-1 rounded-full">
+                <UserAvatar
+                  name={session?.user?.name ?? "User"}
+                  avatar={session?.user?.image ?? undefined}
+                  size="sm"
+                />
+              </button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <p className="truncate text-sm font-medium">{session?.user?.name}</p>
+                <p className="truncate text-xs font-normal text-muted-foreground">
+                  {session?.user?.email}
+                </p>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              render={
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  My Profile
+                </Link>
+              }
+            />
+            <DropdownMenuItem
+              render={
+                <Link href="/settings/team">
+                  <Users className="mr-2 h-4 w-4" />
+                  Team
+                </Link>
+              }
+            />
+            <DropdownMenuItem
+              render={
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              }
+            />
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

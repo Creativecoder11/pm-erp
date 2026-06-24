@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jamroll PM",
+  title: "LLS Task Management",
   description: "Enterprise project management for modern teams",
 };
 

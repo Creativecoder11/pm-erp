@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     }
 
     const users = await User.find(filter)
-      .select("name email avatar role isActive lastSeen")
+      .select("name email avatar role status lastSeen")
       .sort({ name: 1 })
       .limit(limit)
 

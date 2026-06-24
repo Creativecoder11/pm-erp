@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -90,6 +91,14 @@ export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: bool
     if (match) setExpandedProject(match[1])
   }
 
+  // Pick the most specific (longest) href match so a sub-route like
+  // /settings/team only activates "Team", not also the parent "Settings".
+  const activeNavHref = [...NAV_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) =>
+      item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(item.href + "/")
+    )?.href
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 py-4">
@@ -101,18 +110,18 @@ export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: bool
           />
         ) : (
           <div className="icon-chip h-8 w-8 rounded-md font-bold">
-            {organization ? getInitials(organization.name) : "J"}
+            {organization ? getInitials(organization.name) : "L"}
           </div>
         )}
         {!collapsed && (
-          <span className="truncate font-semibold">{organization?.name ?? "Jamroll PM"}</span>
+          <span className="truncate font-semibold">{organization?.name ?? "LLS Task Management"}</span>
         )}
       </div>
 
       <ScrollArea className="flex-1 px-2">
         <nav className="space-y-1">
           {NAV_ITEMS.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+            const active = item.href === activeNavHref
             return (
               <Link
                 key={item.href}
@@ -253,7 +262,9 @@ export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: bool
             }
           />
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               render={

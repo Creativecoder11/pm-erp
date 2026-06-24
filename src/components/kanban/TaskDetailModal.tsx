@@ -37,6 +37,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { DatePicker } from "@/components/shared/DatePicker"
 import { UserSelect } from "@/components/shared/UserSelect"
+import { TaskStatusBadge } from "@/components/shared/TaskStatusBadge"
 import { UserAvatar } from "@/components/shared/Avatar"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
@@ -86,7 +87,7 @@ const DEPENDENCY_LABELS: Record<DependencyType, string> = {
 const REACTION_EMOJIS = ["👍", "❤️", "🎉", "😄"]
 
 export function TaskDetailModal() {
-  const { activeTaskId, closeTaskModal } = useUIStore()
+  const { activeTaskId, closeTaskModal, celebrate } = useUIStore()
   const { updateTask, removeTask } = useTaskStore()
   const { currentProject } = useProjectStore()
   const { data: session } = useSession()
@@ -168,6 +169,7 @@ export function TaskDetailModal() {
   const firstColumn = sortedColumns[0]
   const lastColumn = sortedColumns[sortedColumns.length - 1]
   const isComplete = !!task?.completedAt
+  const currentColumn = sortedColumns.find((c) => c.id === task?.status)
 
   function handleStatusChange(status: string | null) {
     if (!task || !status) return
@@ -175,8 +177,10 @@ export function TaskDetailModal() {
       .getState()
       .tasks.filter((t) => t.status === status && t._id !== task._id)
     const order = siblingTasks.length > 0 ? Math.max(...siblingTasks.map((t) => t.order)) + 1 : 0
+    const wasLastColumn = !!lastColumn && task.status === lastColumn.id
     setTask({ ...task, status })
     patchTask({ status, order })
+    if (lastColumn && status === lastColumn.id && !wasLastColumn) celebrate()
   }
 
   function toggleComplete() {
@@ -193,6 +197,7 @@ export function TaskDetailModal() {
       completedAt: isComplete ? undefined : new Date().toISOString(),
     })
     patchTask({ status: target.id, order })
+    if (!isComplete) celebrate()
   }
 
   function handleTitleBlur() {
@@ -527,7 +532,7 @@ export function TaskDetailModal() {
                       )}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Created by {task.createdBy.name} {formatRelativeTime(task.createdAt)}
+                      Created by {task.createdBy?.name ?? "a deleted user"} {formatRelativeTime(task.createdAt)}
                     </p>
                   </div>
 
@@ -535,6 +540,7 @@ export function TaskDetailModal() {
                     <FieldRow label="Assignee">
                       <UserSelect
                         value={task.assignees.map((a) => a._id)}
+                        knownUsers={task.assignees}
                         onChange={handleAssigneesChange}
                         placeholder="No assignee"
                         className="h-8 w-fit border-none bg-transparent px-1 shadow-none hover:bg-accent"
@@ -565,12 +571,14 @@ export function TaskDetailModal() {
                           size="sm"
                           className="w-40 border-none bg-transparent shadow-none hover:bg-accent"
                         >
-                          <SelectValue placeholder="Status" />
+                          <SelectValue placeholder="Status">
+                            {currentColumn && <TaskStatusBadge column={currentColumn} />}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {sortedColumns.map((col) => (
                             <SelectItem key={col.id} value={col.id}>
-                              {col.name}
+                              <TaskStatusBadge column={col} />
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -973,10 +981,10 @@ export function TaskDetailModal() {
                           const userId = session?.user?.id
                           return (
                             <div key={comment._id} className="flex gap-2">
-                              <UserAvatar name={comment.authorId.name} avatar={comment.authorId.avatar} size="sm" />
+                              <UserAvatar name={comment.authorId?.name ?? "Deleted user"} avatar={comment.authorId?.avatar} size="sm" />
                               <div className="flex-1 rounded-lg bg-muted/50 px-3 py-2">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-semibold">{comment.authorId.name}</span>
+                                  <span className="text-xs font-semibold">{comment.authorId?.name ?? "Deleted user"}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {formatRelativeTime(comment.createdAt)}
                                   </span>

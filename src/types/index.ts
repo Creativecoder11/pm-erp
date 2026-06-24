@@ -1,7 +1,8 @@
 // Shared application types. These mirror the Mongoose schemas but use
 // plain string ids (as returned by the API after JSON serialization).
 
-export type UserRole = "superadmin" | "admin" | "member" | "guest"
+export type UserRole = "superadmin" | "admin" | "member"
+export type UserStatus = "pending" | "active" | "blocked"
 export type OrgRole = "owner" | "admin" | "member" | "guest"
 export type ProjectRole = "manager" | "member" | "viewer"
 export type ProjectStatus = "active" | "on_hold" | "completed" | "archived"
@@ -50,8 +51,9 @@ export interface IUser {
   role: UserRole
   organizationId: string
   teams: string[]
-  isActive: boolean
+  status: UserStatus
   lastSeen: string
+  myTasksSections?: IProjectSection[]
   preferences: IUserPreferences
   createdAt: string
   updatedAt: string
@@ -85,6 +87,20 @@ export interface IOrganization {
 export interface IProjectMember {
   userId: string
   role: ProjectRole
+}
+
+// Department (e.g. Dev, Content, Graphics) within an organization
+export interface ITeam {
+  _id: string
+  name: string
+  organizationId: string
+  members: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ITeamWithMembers extends Omit<ITeam, "members"> {
+  members: IUserSummary[]
 }
 
 export interface ICustomFieldDef {
@@ -185,6 +201,7 @@ export interface ITask {
   subtasks: ITaskSubtask[]
   dependencies: ITaskDependency[]
   customFields: Record<string, unknown>
+  myTasksSections?: Record<string, string>
   tags: string[]
   attachments: ITaskAttachment[]
   watchers: string[]

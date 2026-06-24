@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     const tasks = await Task.find(filter)
       .populate("assignees", "name email avatar")
-      .populate("projectId", "name color")
+      .populate("projectId", "name color columns")
       .sort({ dueDate: 1, priority: -1 })
       .limit(limit)
 
@@ -111,6 +111,11 @@ export async function POST(req: NextRequest) {
       sprintId: data.sprintId,
       order,
     })
+
+    if (data.myTasksSectionId) {
+      task.myTasksSections.set(user.id, data.myTasksSectionId)
+      await task.save()
+    }
 
     const populated = await task.populate([
       { path: "assignees", select: "name email avatar" },

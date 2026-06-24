@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { PriorityBadge } from "@/components/shared/PriorityBadge"
+import { TaskStatusBadge } from "@/components/shared/TaskStatusBadge"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { DatePicker } from "@/components/shared/DatePicker"
@@ -99,7 +100,7 @@ interface TaskGroup {
 export function ListView({ projectId, columns, sections }: ListViewProps) {
   const { tasks, isLoading, fetchTasks, updateTask, removeTask, addTask } = useTaskStore()
   const { updateProjectLocal } = useProjectStore()
-  const { openTaskModal } = useUIStore()
+  const { openTaskModal, celebrate } = useUIStore()
 
   const [sortField, setSortField] = useState<SortField | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
@@ -366,6 +367,8 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
       ids.forEach((id) => updateTask(id, { status }))
       toast.success(`Updated status for ${ids.length} task${ids.length === 1 ? "" : "s"}`)
       setSelectedIds([])
+      const lastColumn = sortedColumns[sortedColumns.length - 1]
+      if (lastColumn && status === lastColumn.id) celebrate()
     } catch {
       toast.error("Failed to update some tasks")
     }
@@ -418,9 +421,9 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="text-xs font-medium text-muted-foreground">Group by</span>
           <Select
             value={groupMode}
@@ -476,7 +479,7 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-sm">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2.5 rounded-lg border bg-background px-3.5 py-2.5 shadow-sm">
           <span className="text-sm font-medium">
             {selectedIds.length} selected
           </span>
@@ -488,7 +491,7 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
             <SelectContent>
               {sortedColumns.map((col) => (
                 <SelectItem key={col.id} value={col.id}>
-                  {col.name}
+                  <TaskStatusBadge column={col} />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -549,12 +552,12 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
                       onCheckedChange={toggleSelectAllOnPage}
                     />
                   </TableHead>
-                  <SortableHead field="title" label="Title" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} className="min-w-48" />
-                  <TableHead>Assignees</TableHead>
-                  <SortableHead field="dueDate" label="Due date" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} />
-                  <SortableHead field="priority" label="Priority" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} />
-                  <TableHead>Status</TableHead>
-                  <SortableHead field="estimatedHours" label="Est. hours" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} />
+                  <SortableHead field="title" label="Title" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} className="min-w-48 px-3" />
+                  <TableHead className="px-3">Assignees</TableHead>
+                  <SortableHead field="dueDate" label="Due date" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} className="px-3" />
+                  <SortableHead field="priority" label="Priority" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} className="px-3" />
+                  <TableHead className="px-3">Status</TableHead>
+                  <SortableHead field="estimatedHours" label="Est. hours" sortField={sortField} sortDirection={sortDirection} onSort={toggleSort} className="px-3" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -594,9 +597,9 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
             </Table>
 
             {groupMode === "section" && (
-              <div className="border-t p-2">
+              <div className="border-t p-3">
                 {addingSection ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <Input
                       autoFocus
                       value={newSectionName}
@@ -740,7 +743,7 @@ function GroupRows({
     <>
       {showGroupHeader && (
         <TableRow className="bg-muted/50 hover:bg-muted/50">
-          <TableCell colSpan={7} className="py-1.5 text-xs font-semibold text-muted-foreground">
+          <TableCell colSpan={7} className="px-3 py-2 text-xs font-semibold text-muted-foreground">
             {group.label} ({group.tasks.length})
           </TableCell>
         </TableRow>
@@ -801,9 +804,9 @@ function SectionGroup({
   return (
     <>
       <TableRow className="bg-muted/50 hover:bg-muted/50">
-        <TableCell colSpan={7} className="py-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+        <TableCell colSpan={7} className="px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-sm font-semibold">
               <button onClick={onToggleCollapse} className="shrink-0 text-muted-foreground hover:text-foreground">
                 {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
@@ -902,9 +905,9 @@ function AddTaskRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
 
   return (
     <TableRow className="hover:bg-transparent">
-      <TableCell colSpan={7} className="py-1">
+      <TableCell colSpan={7} className="px-3 py-1.5">
         {adding ? (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <Input
               autoFocus
               value={title}
@@ -929,7 +932,7 @@ function AddTaskRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           </div>
         ) : (
           <button
-            className="flex items-center gap-1.5 px-1 py-1 text-sm text-muted-foreground transition-colors hover:text-primary"
+            className="flex items-center gap-1.5 px-1 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
             onClick={() => setAdding(true)}
           >
             <Plus className="h-4 w-4" />
@@ -960,6 +963,8 @@ function TaskRow({
   const [titleDraft, setTitleDraft] = useState(task.title)
   const [hoursDraft, setHoursDraft] = useState(task.estimatedHours?.toString() ?? "")
   const [editingHours, setEditingHours] = useState(false)
+  const celebrate = useUIStore((s) => s.celebrate)
+  const currentColumn = columns.find((c) => c.id === task.status)
 
   const isOverdue =
     !!task.dueDate && !task.completedAt && isPast(new Date(task.dueDate)) && !isToday(new Date(task.dueDate))
@@ -993,7 +998,7 @@ function TaskRow({
         <Checkbox checked={selected} onCheckedChange={onToggleSelect} />
       </TableCell>
 
-      <TableCell>
+      <TableCell className="px-3 py-2">
         {editingTitle ? (
           <Input
             autoFocus
@@ -1026,16 +1031,17 @@ function TaskRow({
         )}
       </TableCell>
 
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <UserSelect
           value={task.assignees.map((a) => a._id)}
+          knownUsers={task.assignees}
           onChange={(ids) => onPatch(task._id, { assignees: ids })}
           placeholder="Assign"
           className="h-8 w-fit border-none bg-transparent px-0 shadow-none hover:bg-accent"
         />
       </TableCell>
 
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <DatePicker
           value={task.dueDate ? new Date(task.dueDate) : null}
           onChange={(date) =>
@@ -1050,7 +1056,7 @@ function TaskRow({
         />
       </TableCell>
 
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <Select
           value={task.priority}
           onValueChange={(value) => value && onPatch(task._id, { priority: value })}
@@ -1070,25 +1076,34 @@ function TaskRow({
         </Select>
       </TableCell>
 
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <Select
           value={task.status}
-          onValueChange={(value) => value && onPatch(task._id, { status: value })}
+          onValueChange={(value) => {
+            if (!value) return
+            onPatch(task._id, { status: value })
+            const lastColumn = columns[columns.length - 1]
+            if (lastColumn && value === lastColumn.id && task.status !== lastColumn.id) {
+              celebrate()
+            }
+          }}
         >
           <SelectTrigger size="sm" className="w-36 border-none bg-transparent shadow-none hover:bg-accent">
-            <SelectValue />
+            <SelectValue>
+              {currentColumn && <TaskStatusBadge column={currentColumn} />}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {columns.map((col) => (
               <SelectItem key={col.id} value={col.id}>
-                {col.name}
+                <TaskStatusBadge column={col} />
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </TableCell>
 
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         {editingHours ? (
           <Input
             autoFocus

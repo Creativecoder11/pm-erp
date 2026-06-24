@@ -90,7 +90,7 @@ async function main() {
   const placeholderOwnerId = new Types.ObjectId()
 
   const org = await Organization.create({
-    name: "Jamroll Demo",
+    name: "LLS Demo",
     slug: ORG_SLUG,
     ownerId: placeholderOwnerId,
     plan: "pro",

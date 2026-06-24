@@ -1,6 +1,6 @@
-# Jamroll PM
+# LLS Task Management
 
-Jamroll PM is an enterprise project management application in the spirit of
+LLS Task Management is an enterprise project management application in the spirit of
 Asana — organizations, projects, kanban boards, tasks with subtasks,
 comments, attachments, custom fields, reporting, and role-based access
 control.
