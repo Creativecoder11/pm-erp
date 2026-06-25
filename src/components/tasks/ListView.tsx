@@ -90,6 +90,7 @@ const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
 ]
 
 const UNASSIGNED_GROUP = "__unassigned__"
+const NO_SECTION_GROUP = "__no_section__"
 
 interface TaskGroup {
   key: string
@@ -165,11 +166,20 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
     }
 
     if (groupMode === "section") {
-      return sortedSections.map((s) => ({
+      const sectionIds = new Set(sortedSections.map((s) => s.id))
+      const result = sortedSections.map((s) => ({
         key: s.id,
         label: s.name,
         tasks: pageTasks.filter((t) => t.sectionId === s.id),
       }))
+      // Tasks created outside the List view (e.g. from the board) - or whose
+      // section was deleted - have no matching section. Surface them instead
+      // of silently dropping them from every section group.
+      const noSection = pageTasks.filter((t) => !t.sectionId || !sectionIds.has(t.sectionId))
+      if (noSection.length > 0) {
+        result.push({ key: NO_SECTION_GROUP, label: "No section", tasks: noSection })
+      }
+      return result
     }
 
     if (groupMode === "status") {
@@ -562,7 +572,7 @@ export function ListView({ projectId, columns, sections }: ListViewProps) {
               </TableHeader>
               <TableBody>
                 {groups.map((group) =>
-                  groupMode === "section" ? (
+                  groupMode === "section" && group.key !== NO_SECTION_GROUP ? (
                     <SectionGroup
                       key={group.key}
                       group={group}

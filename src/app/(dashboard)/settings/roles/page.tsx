@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { PERMISSION_MATRIX, type EffectiveRole, type PermissionAction } from "@/lib/rbac"
+import { PERMISSION_MATRIX, type EffectiveRole, type PermissionAction } from "@/lib/permissions"
 
 const ROLES: EffectiveRole[] = ["owner", "admin", "manager", "member", "viewer", "guest"]
 

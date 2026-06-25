@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:3000/projects)",
+      "Bash(curl -s -i -b /tmp/alice_cookies.txt -X PUT -H \"Content-Type: application/json\" -d '{\"sections\":[{\"id\":\"sec_todo\",\"name\":\"To Do\",\"order\":0}]}' \"http://localhost:3000/api/projects/6a3cbe661d2dedf6afe1ce1c\")",
+      "Bash(curl -s -b /tmp/alice_cookies.txt -X POST -H 'Content-Type: application/json' -d '{\"title\":\"Legacy board task \\(no section\\)\",\"projectId\":\"6a3cbe661d2dedf6afe1ce1c\",\"status\":\"todo\",\"priority\":\"none\",\"assignees\":[],\"tags\":[]}' http://localhost:3000/api/tasks)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /tmp/list_verify.html -w \"%{http_code}\\\\n\" -b /tmp/alice_cookies.txt \"http://localhost:3000/projects/6a3cbe661d2dedf6afe1ce1c/list\")",
+      "Bash(curl -s -o /tmp/board_verify.html -w \"%{http_code}\\\\n\" -b /tmp/alice_cookies.txt \"http://localhost:3000/projects/6a3cbe661d2dedf6afe1ce1c/board\")",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)",
+      "Bash(cat next.config.mjs)",
+      "Bash(nohup npx tsx server.ts)",
+      "Bash(curl -sf http://localhost:3000)"
+    ]
+  }
+}

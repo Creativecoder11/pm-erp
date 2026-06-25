@@ -20,7 +20,6 @@ import {
   KanbanSquare,
   List,
   GanttChartSquare,
-  UserCog,
   Settings2,
   FolderKanban,
 } from "lucide-react"
@@ -56,7 +55,6 @@ const PROJECT_SUB_NAV = [
   { label: "Board", path: "board", icon: KanbanSquare },
   { label: "List", path: "list", icon: List },
   { label: "Timeline", path: "timeline", icon: GanttChartSquare },
-  { label: "Members", path: "members", icon: UserCog },
   { label: "Settings", path: "settings", icon: Settings2 },
 ]
 

@@ -19,14 +19,15 @@ import { TaskCard } from "@/components/kanban/TaskCard"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { useTaskStore } from "@/store/taskStore"
 import { useUIStore } from "@/store/uiStore"
-import type { IProjectColumn } from "@/types"
+import type { IProjectColumn, IProjectSection } from "@/types"
 
 interface KanbanBoardProps {
   projectId: string
   columns: IProjectColumn[]
+  sections: IProjectSection[]
 }
 
-export function KanbanBoard({ projectId, columns }: KanbanBoardProps) {
+export function KanbanBoard({ projectId, columns, sections }: KanbanBoardProps) {
   const { tasks, isLoading, fetchTasks, getTasksByStatus, moveTask, addTask } = useTaskStore()
   const { openTaskModal } = useUIStore()
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -114,10 +115,12 @@ export function KanbanBoard({ projectId, columns }: KanbanBoardProps) {
 
   async function handleAddTask(status: string, title: string) {
     try {
+      const defaultSection = [...sections].sort((a, b) => a.order - b.order)[0]
       const res = await axios.post("/api/tasks", {
         title,
         projectId,
         status,
+        sectionId: defaultSection?.id,
         priority: "none",
         assignees: [],
         tags: [],

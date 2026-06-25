@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { format } from "date-fns"
-import { CalendarDays, KanbanSquare, List, GanttChartSquare, UserCog, Settings2 } from "lucide-react"
+import { CalendarDays, KanbanSquare, List, GanttChartSquare, Settings2 } from "lucide-react"
 import { AvatarStack } from "@/components/shared/Avatar"
 import { ProjectStatusBadge } from "@/components/shared/StatusBadge"
 import { cn } from "@/lib/utils"
@@ -15,7 +15,6 @@ const TABS = [
   { label: "Board", path: "board", icon: KanbanSquare },
   { label: "List", path: "list", icon: List },
   { label: "Timeline", path: "timeline", icon: GanttChartSquare },
-  { label: "Members", path: "members", icon: UserCog },
   { label: "Settings", path: "settings", icon: Settings2 },
 ]
 

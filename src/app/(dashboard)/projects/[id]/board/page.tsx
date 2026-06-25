@@ -26,7 +26,7 @@ export default function BoardPage({ params }: BoardPageProps) {
 
   return (
     <div className="h-full">
-      <KanbanBoard projectId={id} columns={currentProject.columns} />
+      <KanbanBoard projectId={id} columns={currentProject.columns} sections={currentProject.sections} />
       <TaskDetailModal />
     </div>
   )
